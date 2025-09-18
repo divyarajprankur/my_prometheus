@@ -1,0 +1,77 @@
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+          - 13.235.104.100:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+  #- "/home/ec2-user/rules/rules.yml"
+  - "/home/ec2-user/rules/linuxrules.yml"
+  - "/home/ec2-user/rules/webrules.yml"
+  - "/home/ec2-user/rules/windowsrules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+       # The label name is added as a label `label_name=<label_value>` to any timeseries scraped from this config.
+        labels:
+          app: "prometheus"
+
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["13.127.115.134:9100"]
+        labels:
+          app: "node_exporter"
+
+#  - job_name: "node_exporter_private_ip"
+#
+#    static_configs:
+#      - targets: ["172.31.44.170:9100"]
+#        labels:
+#          app: "Node_exporter_private_ip"
+
+
+  - job_name: "my_application-Web_app"
+    static_configs:
+      - targets: ["13.235.104.100:8001"]
+        labels:
+          app: "my_web_app"
+
+
+  - job_name: 'ec2'
+    ec2_sd_configs:
+      - access_key: YOUR_AWS_ACCESS_KEY_ID
+        secret_key: YOUR_AWS_SECRET_ACCESS_KEY
+        region: ap-south-1
+    relabel_configs:
+      - source_labels: [__meta_ec2_public_ip]
+        regex: '(.*)'
+        replacement: '${1}:9100'
+        target_label: __address_
+        
+  - job_name: cloudwatch
+    static_configs:
+      - targets: ['13.127.115.134:9106']
+
+  - job_name: My_SQL_Exporter
+    static_configs:
+      - targets: ['13.127.115.134:9104']      
